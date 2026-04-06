@@ -132,3 +132,23 @@ export const seedInitialBins = async () => {
     await addDoc(collection(db, "bins"), bin);
   }
 };
+
+export const seedInitialLogs = async () => {
+  const types = ["general", "recycling", "compost", "electronic"];
+  const now = new Date();
+  
+  // Generate 24 hours of data
+  for (let i = 24; i >= 0; i--) {
+    const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
+    const numLogs = Math.floor(Math.random() * 3) + 1; // 1-3 logs per hour
+    
+    for (let j = 0; j < numLogs; j++) {
+      await addDoc(collection(db, "logs"), {
+        binId: "seed-bin-" + Math.floor(Math.random() * 5),
+        weight: Number((Math.random() * 2 + 0.5).toFixed(2)), // 0.5 - 2.5 kg
+        type: types[Math.floor(Math.random() * types.length)],
+        timestamp: timestamp.toISOString()
+      });
+    }
+  }
+};
