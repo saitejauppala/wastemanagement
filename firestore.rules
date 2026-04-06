@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /bins
+    // Fields:
+    //   - location: string (required)
+    //   - type: string (required, enum: ["general", "recycling", "compost", "electronic"])
+    //   - fillLevel: number (required, 0-100)
+    //   - lastEmptied: string (ISO 8601)
+    //   - status: string (enum: ["active", "maintenance", "full"])
+    //
+    // Collection: /logs
+    // Fields:
+    //   - binId: string (required)
+    //   - timestamp: string (ISO 8601, required)
+    //   - weight: number (required, positive)
+    //   - type: string (required)
+    //
+    // Collection: /users
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string
+    //   - role: string (enum: ["admin", "staff", "student"])
+    //   - points: number (positive)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "saitejauppala07@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidBin(data) {
+      return data.location is string && data.location.size() > 0 && data.location.size() < 100 &&
+             data.type in ["general", "recycling", "compost", "electronic"] &&
+             data.fillLevel is number && data.fillLevel >= 0 && data.fillLevel <= 100;
+    }
+
+    function isValidLog(data) {
+      return data.binId is string && data.weight is number && data.weight >= 0;
+    }
+
+    function isValidUser(data) {
+      return data.uid is string && data.email is string && isValidEmail(data.email);
+    }
+
+    // Rules
+    match /bins/{binId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /logs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidLog(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'student';
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+    }
+    
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

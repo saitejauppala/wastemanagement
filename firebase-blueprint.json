@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "WasteBin": {
+      "title": "Waste Bin",
+      "description": "A smart waste bin on campus.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "location": { "type": "string" },
+        "type": { "type": "string", "enum": ["general", "recycling", "compost", "electronic"] },
+        "fillLevel": { "type": "number", "description": "Fill percentage (0-100)" },
+        "lastEmptied": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "maintenance", "full"] }
+      },
+      "required": ["location", "type", "fillLevel"]
+    },
+    "WasteLog": {
+      "title": "Waste Log",
+      "description": "A log entry for waste collected.",
+      "type": "object",
+      "properties": {
+        "binId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "weight": { "type": "number", "description": "Weight in kg" },
+        "type": { "type": "string" }
+      },
+      "required": ["binId", "timestamp", "weight", "type"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A campus user (student, faculty, or staff).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "staff", "student"] },
+        "points": { "type": "number", "description": "Sustainability points earned" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/bins": {
+      "schema": "WasteBin",
+      "description": "Real-time status of all campus bins."
+    },
+    "/logs": {
+      "schema": "WasteLog",
+      "description": "Historical waste collection data."
+    },
+    "/users": {
+      "schema": "User",
+      "description": "User profiles and sustainability points."
+    }
+  }
+}
