@@ -709,13 +709,6 @@ export default function App() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          <footer className="mt-20 pb-10 text-center">
-            <div className="neumorph inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Developed by</span>
-              <span className="text-sm font-black gradient-text tracking-tight">Saiteja Uppala</span>
-            </div>
-          </footer>
         </main>
       </div>
     </ErrorBoundary>
